@@ -10,7 +10,7 @@
 
 ## 使用
 
-[点击此处下载最新版]()
+[点击此处下载最新版](https://github.com/recallfuture/elearning/releases/latest)
 
 ## 开源许可
 
