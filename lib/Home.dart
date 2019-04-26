@@ -48,13 +48,13 @@ class _HomePageState extends State<HomePage> {
             // 在交作业前一天给个提醒
             LocalNotification.instance.schedule(
                 date.add(Duration(hours: -18)),
-                '$courseName有作业明天要交啦',
+                '[$courseName]的作业明天要交啦！',
                 '作业名：${homework.first}\n截止日期：${date.year}年${date.month}月${date.day}日'
             );
             // 在交作业前三天给提个醒
             LocalNotification.instance.schedule(
                 date.add(Duration(days: -2, hours: -18)),
-                '$courseName有作业就快要交啦',
+                '该写[$courseName]的作业啦',
                 '作业名：${homework.first}\n截止日期：${date.year}年${date.month}月${date.day}日'
             );
           }
@@ -84,7 +84,7 @@ class _HomePageState extends State<HomePage> {
     ReminderCard(
       icon: const Icon(Icons.error, color: Colors.white, size: 40.0,),
       color: Colors.redAccent,
-      content: '有${_courses.length}门课程有待交作业',
+      content: '${_courses.length}门课程有待交作业',
     )
         :
     ReminderCard(
@@ -99,24 +99,31 @@ class _HomePageState extends State<HomePage> {
     List<Widget> list = List();
     _homeworks.forEach((courseName, homework) {
       print(courseName);
-      list.add(ListTile(
-        title: Text(
+      list.add(Text(
           courseName,
+          textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 30.0,
             fontWeight: FontWeight.bold,
-          ),
-        ),
+          )
       ));
 
       homework.forEach((item) {
         print(item.first);
-        list.add(
-          ListTile(
-            leading: Text('${item.second.year}年${item.second.month}月${item.second.day}日'),
-            title: Text(item.first),
-          )
-        );
+        list.add(Card(
+          elevation: 5.0,
+          margin: EdgeInsets.all(20.0),
+          child: ListTile(
+            title: Text(
+              item.first,
+              textAlign: TextAlign.center,
+            ),
+            subtitle: Text(
+              '${item.second.year}年${item.second.month}月${item.second.day}日',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ));
       });
     });
     return list;

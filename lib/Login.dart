@@ -12,6 +12,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
+  FocusNode passwordFieldNode = FocusNode();
   String _username, _password;
   bool _isObscure = true;
   Color _eyeColor;
@@ -63,7 +64,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 buildTitle(),
                 SizedBox(height: 100.0),
-                buildEmailTextField(),
+                buildUsernameTextField(context),
                 SizedBox(height: 30.0),
                 buildPasswordTextField(context),
                 SizedBox(height: 100.0),
@@ -72,6 +73,44 @@ class _LoginPageState extends State<LoginPage> {
                 buildHelp(context),
               ],
             ));
+  }
+
+  // 登录
+  void login() {
+    if (_formKey.currentState.validate()) {
+      ///只有输入的内容符合要求通过才会到达此处
+      _formKey.currentState.save();
+      //TODO 执行登录方法
+
+      if(this._logining) {
+        return;
+      }
+
+      setState(() {
+        this._logining = true;
+      });
+      School.instance.setUsername(this._username);
+      School.instance.setPassword(this._password);
+      School.instance.login()
+          .then((bool loginStatus) {
+        setState(() {
+          this._logining = false;
+        });
+        if(loginStatus) {
+          // Scaffold.of(context).showSnackBar(SnackBar(content: new Text('登录成功')));
+          // 进入主页面
+          Navigator.of(context).pushNamed('/home');
+        } else {
+          Scaffold.of(context).showSnackBar(SnackBar(content: new Text('登录失败，请检查学号和密码')));
+        }
+      })
+          .catchError((error) {
+        setState(() {
+          this._logining = false;
+        });
+        Scaffold.of(context).showSnackBar(SnackBar(content: new Text('发生了错误，请重试')));
+      });
+    }
   }
 
   Align buildLoginButton(BuildContext context) {
@@ -90,42 +129,7 @@ class _LoginPageState extends State<LoginPage> {
           ),
 
           color: Colors.black,
-          onPressed: () {
-            if (_formKey.currentState.validate()) {
-              ///只有输入的内容符合要求通过才会到达此处
-              _formKey.currentState.save();
-              //TODO 执行登录方法
-
-              if(this._logining) {
-                return;
-              }
-
-              setState(() {
-                this._logining = true;
-              });
-              School.instance.setUsername(this._username);
-              School.instance.setPassword(this._password);
-              School.instance.login()
-                  .then((bool loginStatus) {
-                    setState(() {
-                      this._logining = false;
-                    });
-                    if(loginStatus) {
-                      // Scaffold.of(context).showSnackBar(SnackBar(content: new Text('登录成功')));
-                      // 进入主页面
-                      Navigator.of(context).pushNamed('/home');
-                    } else {
-                      Scaffold.of(context).showSnackBar(SnackBar(content: new Text('登录失败，请检查学号和密码')));
-                    }
-                  })
-                  .catchError((error) {
-                    setState(() {
-                      this._logining = false;
-                    });
-                    Scaffold.of(context).showSnackBar(SnackBar(content: new Text('发生了错误，请重试')));
-                  });
-            }
-          },
+          onPressed: () => login(),
           shape: StadiumBorder(side: BorderSide()),
         ),
       ),
@@ -134,6 +138,7 @@ class _LoginPageState extends State<LoginPage> {
 
   TextFormField buildPasswordTextField(BuildContext context) {
     return TextFormField(
+      focusNode: passwordFieldNode,
       initialValue: this._password,
       onSaved: (String value) => _password = value,
       obscureText: _isObscure,
@@ -156,11 +161,13 @@ class _LoginPageState extends State<LoginPage> {
                       ? Colors.grey
                       : Theme.of(context).iconTheme.color;
                 });
-              })),
+              })
+      ),
+      onEditingComplete: () => login(),
     );
   }
 
-  TextFormField buildEmailTextField() {
+  TextFormField buildUsernameTextField(BuildContext context) {
     return TextFormField(
       initialValue: this._username,
       decoration: InputDecoration(
@@ -172,6 +179,7 @@ class _LoginPageState extends State<LoginPage> {
         }
       },
       onSaved: (String value) => _username = value,
+      onEditingComplete: () => FocusScope.of(context).requestFocus(passwordFieldNode),
     );
   }
 
@@ -193,7 +201,7 @@ class _LoginPageState extends State<LoginPage> {
           ),
           Text(
             '教学平台登录',
-            style: TextStyle(fontSize: 42.0),
+            style: TextStyle(fontSize: 40.0),
           ),
         ],
       )
