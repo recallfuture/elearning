@@ -17,46 +17,49 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-
     
-    School.instance.getReminder().then((courses) {
+    School.instance.getReminder().then((courses) async {
       setState(() {
         _courses = courses;
       });
-      courses.forEach((courseId, courseName) {
-        School.instance.getCourse(courseId).then((course) {
-          for(List<String> c in course){
-            // 获取交付时间
-            DateTime date;
-            if(c[1] != null){
-              date = DateTime.parse(c[1]);
-            }
+      // FIXED: 异步同时请求会无法获得正确的课程信息，需要同步执行
+      List<String> courseIds = courses.keys.toList();
+      for(var i = 0; i < courseIds.length; i++) {
+        String courseId = courseIds[i];
+        String courseName = courses[courseId];
 
-            // 还没提交且还没到期的
-            if(c[6] == null && date.millisecondsSinceEpoch > DateTime.now().millisecondsSinceEpoch) {
-              Pair<String, DateTime> homework = Pair(c[0], date);
-              if(_homeworks[courseName] == null) {
-                _homeworks[courseName] = List();
-              }
-              setState(() {
-                _homeworks[courseName].add(homework);
-              });
-              // 在交作业前一天给个提醒
-              LocalNotification.instance.schedule(
-                  date.add(Duration(hours: -18)),
-                  '$courseName有作业明天要交啦',
-                  '作业名：${homework.first}\n截止日期：${date.year}年${date.month}月${date.day}日'
-              );
-              // 在交作业前三天给提个醒
-              LocalNotification.instance.schedule(
-                  date.add(Duration(days: -2, hours: -18)),
-                  '$courseName有作业就快要交啦',
-                  '作业名：${homework.first}\n截止日期：${date.year}年${date.month}月${date.day}日'
-              );
-            }
+        List<List<String>> course = await School.instance.getCourse(courseId);
+        for(List<String> c in course){
+          // 获取交付时间
+          DateTime date;
+          if(c[1] != null){
+            date = DateTime.parse(c[1]);
           }
-        });
-      });
+
+          // 还没提交且还没到期的
+          if(c[6] == null && date.millisecondsSinceEpoch > DateTime.now().millisecondsSinceEpoch) {
+            Pair<String, DateTime> homework = Pair(c[0], date);
+            if(_homeworks[courseName] == null) {
+              _homeworks[courseName] = List();
+            }
+            setState(() {
+              _homeworks[courseName].add(homework);
+            });
+            // 在交作业前一天给个提醒
+            LocalNotification.instance.schedule(
+                date.add(Duration(hours: -18)),
+                '$courseName有作业明天要交啦',
+                '作业名：${homework.first}\n截止日期：${date.year}年${date.month}月${date.day}日'
+            );
+            // 在交作业前三天给提个醒
+            LocalNotification.instance.schedule(
+                date.add(Duration(days: -2, hours: -18)),
+                '$courseName有作业就快要交啦',
+                '作业名：${homework.first}\n截止日期：${date.year}年${date.month}月${date.day}日'
+            );
+          }
+        }
+      }
     });
   }
 
