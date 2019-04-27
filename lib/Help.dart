@@ -64,7 +64,7 @@ class HelpPage extends StatelessWidget {
 
   Widget buildAuthor() {
     return Text(
-      '作者：孙旭\n' + 'v1.1',
+      '作者：孙旭\n' + 'v1.2',
       textAlign: TextAlign.center,
       style: TextStyle(
         fontSize: 16.0,
