@@ -60,15 +60,22 @@ class _HomePageState extends State<HomePage> {
               _homeworks[courseName].add(homework);
             });
             // 在交作业前一天给个提醒
-            LocalNotification.instance.schedule(
-                date.add(Duration(hours: -18)),
-                '[$courseName]的作业明天要交啦！',
-                '作业名：${homework['title']}\n截止日期：${date.year}年${date.month}月${date.day}日');
+            // 当前时间已经超过的话就不重复提醒了
+            if(date.add(Duration(hours: -18)).isAfter(DateTime.now())) {
+              LocalNotification.instance.schedule(
+                  date.add(Duration(hours: -18)),
+                  '[$courseName]的作业明天要交啦！',
+                  '作业名：${homework['title']}，截止日期：${date.year}年${date
+                      .month}月${date.day}日。');
+            }
             // 在交作业前三天给提个醒
-            LocalNotification.instance.schedule(
-                date.add(Duration(days: -2, hours: -18)),
-                '该写[$courseName]的作业啦',
-                '作业名：${homework['title']}\n截止日期：${date.year}年${date.month}月${date.day}日');
+            // 当前时间已经超过的话就不重复提醒了
+            if(date.add(Duration(days: -2, hours: -18)).isAfter(DateTime.now())) {
+              LocalNotification.instance.schedule(
+                  date.add(Duration(days: -2, hours: -18)),
+                  '该写[$courseName]的作业啦',
+                  '作业名：${homework['title']}，截止日期：${date.year}年${date.month}月${date.day}日。');
+            }
           }
         }
       }
