@@ -10,61 +10,65 @@ class School {
 
   Dio _dio;
   SharedPreferences _prefs;
+  CookieJar _cookieJar = CookieJar();
 
   static School instance;
 
   // 获取用户名和密码
   String getUsername() {
-    this._username = this._prefs.getString('username');
-    return this._username;
+    _username = _prefs.getString('username');
+    return _username;
   }
 
   String getPassword() {
-    this._password = this._prefs.getString('password');
-    return this._password;
+    _password = _prefs.getString('password');
+    return _password;
   }
 
   void setUsername(String username) async {
-    this._username = username;
-    await this._prefs.setString('username', username);
+    _username = username;
+    await _prefs.setString('username', username);
   }
 
   void setPassword(String password) async {
-    this._password = password;
-    await this._prefs.setString('password', password);
+    _password = password;
+    await _prefs.setString('password', password);
   }
 
   // 添加默认配置
   void addOptions() {
-    this._dio.options.baseUrl = 'http://elearning.ncst.edu.cn/meol/';
-    this._dio.options.headers = {
-      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36',
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+    _dio.options.baseUrl = 'http://elearning.ncst.edu.cn/meol/';
+    _dio.options.headers = {
+      'User-Agent':
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36',
+      'Accept':
+          'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
       'Accept-Encoding': 'gzip',
       'Accept-Language': 'zh-CN,zh;q=0.8,en;q=0.6,zh-TW;q=0.4'
     };
-    this._dio.options.contentType = ContentType.parse("application/x-www-form-urlencoded");
+    _dio.options.contentType =
+        ContentType.parse("application/x-www-form-urlencoded");
     // 任意HTTP响应码均不报错
-    this._dio.options.validateStatus = (code) => true;
+    _dio.options.validateStatus = (code) => true;
   }
 
   Future<void> init() async {
     // 初始化
-    this._dio = Dio();
-    this.addOptions();
+    _dio = Dio();
+    addOptions();
 
     // 添加cookie和日志的拦截器
-    this._dio.interceptors.add(CookieManager(CookieJar()));
-    this._dio.interceptors.add(LogInterceptor(responseBody: false));
+    _dio.interceptors.add(CookieManager(_cookieJar));
+    _dio.interceptors.add(LogInterceptor(responseBody: false));
 
     // 获取本地存储实例
-    this._prefs = await SharedPreferences.getInstance();
+    _prefs = await SharedPreferences.getInstance();
   }
 
   // 用get方式获取url指向的的内容
   Future<String> getContent(String url) async {
     // 获取字节流并转换成gbk编码的文本
-    Response<List<int>> response = await this._dio.get<List<int>>(
+    Response<List<int>> response = await _dio.get<List<int>>(
       url,
       options: Options(responseType: ResponseType.bytes),
     );
@@ -86,15 +90,16 @@ class School {
   // 登录
   // 返回是否登录成功
   Future<bool> login() async {
-    if (this._username == null || this._password == null) {
+    if (_username == null || _password == null) {
       return false;
     }
 
     // 获取csrf token
     String token;
     String content = await getContent('loginCheck.do');
-    Match match = matchOne(r'<input type="hidden" name="logintoken" value="(\d+)"/>', content);
-    if(match != null) {
+    Match match = matchOne(
+        r'<input type="hidden" name="logintoken" value="(\d+)"/>', content);
+    if (match != null) {
       token = match.group(1);
       print('token: ' + token);
     }
@@ -103,18 +108,15 @@ class School {
     FormData formData = FormData.from({
       'logintoken': token,
       'enterLid': '',
-      'IPT_LOGINUSERNAME': this._username,
-      'IPT_LOGINPASSWORD': this._password,
+      'IPT_LOGINUSERNAME': _username,
+      'IPT_LOGINPASSWORD': _password,
     });
 
     // 提交登录表单
-    Response response =  await this._dio.post(
-        'loginCheck.do',
-        data: formData
-    );
+    Response response = await _dio.post('loginCheck.do', data: formData);
 
     // 重定向意味着成功登录了
-    if(response.statusCode == 302) {
+    if (response.statusCode == 302) {
       // 登录成功
       return true;
     } else {
@@ -127,10 +129,13 @@ class School {
   Future<Map<String, String>> getReminder() async {
     Map<String, String> reminder = new Map();
 
-    String content = await getContent('welcomepage/student/interaction_reminder_v8.jsp');
-    Iterable<Match> matchs = matchAll(r'<a href="./lesson/enter_course.jsp\?lid=(\d+)&t=hw" target="_blank">(.+?)</a></li>', content);
-    for(Match m in matchs) {
-      reminder[m.group(1).trim()] = m.group(2);
+    String content =
+        await getContent('welcomepage/student/interaction_reminder_v8.jsp');
+    Iterable<Match> matchs = matchAll(
+        r'<a href="./lesson/enter_course.jsp\?lid=(\d+)&t=hw" target="_blank">(.+?)</a></li>',
+        content);
+    for (Match m in matchs) {
+      reminder[m.group(1).trim()] = m.group(2).trim();
       print('${m.group(2).trim()}: ${m.group(1)}');
     }
 
@@ -144,17 +149,18 @@ class School {
 
     // 需要先访问这个课程地址才能通过下面的固定地址得到正确的作业信息
     await getContent('jpk/course/layout/newpage/index.jsp?courseId=$courseId');
-    String content = await getContent('http://elearning.ncst.edu.cn/meol/common/hw/student/hwtask.jsp');
+    String content = await getContent(
+        'http://elearning.ncst.edu.cn/meol/common/hw/student/hwtask.jsp');
 
     // 获取表格的行
     Iterable<Match> rows = matchAll(r'<tr>((?:.|\n)*?)</tr>', content);
-    for(Match r in rows) {
+    for (Match r in rows) {
       // 获取表格的列
       Iterable<Match> cols = matchAll(r'<td.*?>((?:.|\n)*?)</td>', r.group(1));
       // 长度小于0时是表格头，大于0时是内容
       if (cols.length > 0) {
         List<String> col = new List();
-        for(Match c in cols) {
+        for (Match c in cols) {
           col.add(c.group(1));
         }
 
@@ -164,7 +170,7 @@ class School {
 
         // 匹配作业名
         m = matchOne(r'<a.*?>(\S+)(?:.|\n)*?</a>', col[0]);
-        if(m != null) {
+        if (m != null) {
           col[0] = m.group(1);
         } else {
           col[0] = null;
@@ -173,8 +179,8 @@ class School {
 
         // 匹配日期
         Iterable<Match> ms = matchAll(r'(\d+)', col[1]);
-        var ml =  ms.toList();
-        if(ml.length > 0) {
+        var ml = ms.toList();
+        if (ml.length > 0) {
           int year = int.parse(ml[0].group(1));
           int month = int.parse(ml[1].group(1));
           int day = int.parse(ml[2].group(1));
@@ -186,7 +192,7 @@ class School {
 
         // 匹配分数
         m = matchOne(r'(\S+)', col[2]);
-        if(m != null) {
+        if (m != null) {
           col[2] = m.group(1);
         } else {
           col[2] = null;
@@ -195,7 +201,7 @@ class School {
 
         // 匹配发布人
         m = matchOne(r'(\S+)', col[3]);
-        if(m != null) {
+        if (m != null) {
           col[3] = m.group(1);
         } else {
           col[3] = null;
@@ -204,7 +210,7 @@ class School {
 
         // 匹配统计信息
         m = matchOne(r'href="../(.+?)"', col[4]);
-        if(m != null) {
+        if (m != null) {
           col[4] = 'common/hw/${m.group(1)}';
         } else {
           col[4] = null;
@@ -213,7 +219,7 @@ class School {
 
         // 匹配提交作业
         m = matchOne(r'href="(.+?)"', col[5]);
-        if(m != null) {
+        if (m != null) {
           col[5] = 'common/hw/student/${m.group(1)}';
         } else {
           col[5] = null;
@@ -222,7 +228,7 @@ class School {
 
         // 匹配查看结果
         m = matchOne(r'href="(.+?)"', col[6]);
-        if(m != null) {
+        if (m != null) {
           col[6] = 'common/hw/student/${m.group(1)}';
         } else {
           col[6] = null;
@@ -239,5 +245,32 @@ class School {
     }
 
     return course;
+  }
+
+  // 从统计信息url中获得作业id
+  String getHomeworkId(String statUrl) {
+    return matchOne(r'hwtid=(\d+)', statUrl)?.group(1);
+  }
+
+  // 获取作业信息
+  // 格式是html文本
+  Future<String> getHomeworkContent(String homeworkId) async {
+    if (homeworkId == null) {
+      return null;
+    }
+
+    String content =
+        await getContent('common/hw/student/hwtask.view.jsp?hwtid=$homeworkId');
+    Match match = matchOne(r"<input type='hidden'.*?value='(.*?)'>", content);
+    if (match != null) {
+      String html = match.group(1);
+      html = html.replaceAll(RegExp(r'&lt;'), '<');
+      html = html.replaceAll(RegExp(r'&gt;'), '>');
+      html = html.replaceAll(RegExp(r'&quot;'), '"');
+      html = html.replaceAll(RegExp(r'&amp;'), '&');
+      return html;
+    }
+
+    return null;
   }
 }

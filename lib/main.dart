@@ -26,10 +26,10 @@ class MyApp extends StatelessWidget {
       home: Scaffold(
         body: LoginPage(),
       ),
-      routes: <String, WidgetBuilder> {
+      routes: <String, WidgetBuilder>{
         // 这里可以定义静态路由，不能传递参数
         '/home': (_) => HomePage(),
-        '/help': (_) => HelpPage()
+        '/help': (_) => HelpPage(),
       },
     );
   }

@@ -27,26 +27,26 @@ class _LoginPageState extends State<LoginPage> {
     this._password = School.instance.getPassword();
 
     // 存在的话就直接登录
-    if(!(this._username == null || this._password == null)) {
+    if (!(this._username == null || this._password == null)) {
       this._logining = true;
-      School.instance.login()
-          .then((bool loginStatus) {
+      School.instance.login().then((bool loginStatus) {
         setState(() {
           this._logining = false;
         });
-        if(loginStatus) {
+        if (loginStatus) {
           // Scaffold.of(context).showSnackBar(SnackBar(content: new Text('登录成功')));
           // 进入主页面
           Navigator.of(context).pushNamed('/home');
         } else {
-          Scaffold.of(this.context).showSnackBar(SnackBar(content: new Text('自动登录失败，请检查学号和密码')));
+          Scaffold.of(this.context)
+              .showSnackBar(SnackBar(content: new Text('自动登录失败，请检查学号和密码')));
         }
-      })
-          .catchError((error) {
+      }).catchError((error) {
         setState(() {
           this._logining = false;
         });
-        Scaffold.of(this.context).showSnackBar(SnackBar(content: new Text('发生了错误，请重试')));
+        Scaffold.of(this.context)
+            .showSnackBar(SnackBar(content: new Text('发生了错误，请重试')));
       });
     }
   }
@@ -54,25 +54,27 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Form(
-            key: _formKey,
-            child: ListView(
-              padding: EdgeInsets.symmetric(horizontal: 22.0),
-              children: <Widget>[
-                SizedBox(height: 50.0),
-                SizedBox(
-                  height: kToolbarHeight,
-                ),
-                buildTitle(),
-                SizedBox(height: 100.0),
-                buildUsernameTextField(context),
-                SizedBox(height: 30.0),
-                buildPasswordTextField(context),
-                SizedBox(height: 100.0),
-                buildLoginButton(context),
-                SizedBox(height: 50.0,),
-                buildHelp(context),
-              ],
-            ));
+        key: _formKey,
+        child: ListView(
+          padding: EdgeInsets.symmetric(horizontal: 22.0),
+          children: <Widget>[
+            SizedBox(height: 50.0),
+            SizedBox(
+              height: kToolbarHeight,
+            ),
+            buildTitle(),
+            SizedBox(height: 100.0),
+            buildUsernameTextField(context),
+            SizedBox(height: 30.0),
+            buildPasswordTextField(context),
+            SizedBox(height: 100.0),
+            buildLoginButton(context),
+            SizedBox(
+              height: 50.0,
+            ),
+            buildHelp(context),
+          ],
+        ));
   }
 
   // 登录
@@ -82,7 +84,7 @@ class _LoginPageState extends State<LoginPage> {
       _formKey.currentState.save();
       //TODO 执行登录方法
 
-      if(this._logining) {
+      if (this._logining) {
         return;
       }
 
@@ -91,24 +93,24 @@ class _LoginPageState extends State<LoginPage> {
       });
       School.instance.setUsername(this._username);
       School.instance.setPassword(this._password);
-      School.instance.login()
-          .then((bool loginStatus) {
+      School.instance.login().then((bool loginStatus) {
         setState(() {
           this._logining = false;
         });
-        if(loginStatus) {
+        if (loginStatus) {
           // Scaffold.of(context).showSnackBar(SnackBar(content: new Text('登录成功')));
           // 进入主页面
           Navigator.of(context).pushNamed('/home');
         } else {
-          Scaffold.of(context).showSnackBar(SnackBar(content: new Text('登录失败，请检查学号和密码')));
+          Scaffold.of(context)
+              .showSnackBar(SnackBar(content: new Text('登录失败，请检查学号和密码')));
         }
-      })
-          .catchError((error) {
+      }).catchError((error) {
         setState(() {
           this._logining = false;
         });
-        Scaffold.of(context).showSnackBar(SnackBar(content: new Text('发生了错误，请重试')));
+        Scaffold.of(context)
+            .showSnackBar(SnackBar(content: new Text('发生了错误，请重试')));
       });
     }
   }
@@ -119,15 +121,14 @@ class _LoginPageState extends State<LoginPage> {
         height: 45.0,
         width: 270.0,
         child: RaisedButton(
-          child: _logining ?
-          CircularProgressIndicator(
-            valueColor: new AlwaysStoppedAnimation<Color>(Colors.white),
-          ):
-          Text(
-            '登录',
-            style: Theme.of(context).primaryTextTheme.headline,
-          ),
-
+          child: _logining
+              ? CircularProgressIndicator(
+                  valueColor: new AlwaysStoppedAnimation<Color>(Colors.white),
+                )
+              : Text(
+                  '登录',
+                  style: Theme.of(context).primaryTextTheme.headline,
+                ),
           color: Colors.black,
           onPressed: () => login(),
           shape: StadiumBorder(side: BorderSide()),
@@ -161,8 +162,7 @@ class _LoginPageState extends State<LoginPage> {
                       ? Colors.grey
                       : Theme.of(context).iconTheme.color;
                 });
-              })
-      ),
+              })),
       onEditingComplete: () => login(),
     );
   }
@@ -179,33 +179,33 @@ class _LoginPageState extends State<LoginPage> {
         }
       },
       onSaved: (String value) => _username = value,
-      onEditingComplete: () => FocusScope.of(context).requestFocus(passwordFieldNode),
+      onEditingComplete: () =>
+          FocusScope.of(context).requestFocus(passwordFieldNode),
     );
   }
 
   Padding buildTitle() {
     return Padding(
-      padding: EdgeInsets.all(8.0),
-      child: Row(
-        children: <Widget>[
-          Padding(
-            padding: EdgeInsets.only(right: 12.0),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Container(
-                color: Colors.black,
-                width: 5.0,
-                height: 50.0,
+        padding: EdgeInsets.all(8.0),
+        child: Row(
+          children: <Widget>[
+            Padding(
+              padding: EdgeInsets.only(right: 12.0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  color: Colors.black,
+                  width: 5.0,
+                  height: 50.0,
+                ),
               ),
             ),
-          ),
-          Text(
-            '教学平台登录',
-            style: TextStyle(fontSize: 40.0),
-          ),
-        ],
-      )
-    );
+            Text(
+              '教学平台登录',
+              style: TextStyle(fontSize: 40.0),
+            ),
+          ],
+        ));
   }
 
   Widget buildHelp(BuildContext context) {
@@ -213,7 +213,10 @@ class _LoginPageState extends State<LoginPage> {
       alignment: Alignment.center,
       child: IconButton(
         iconSize: 40.0,
-        icon: Icon(Icons.help, color: Colors.blue,),
+        icon: Icon(
+          Icons.help,
+          color: Colors.blue,
+        ),
         onPressed: () => Navigator.of(context).pushNamed('/help'),
       ),
     );
