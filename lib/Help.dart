@@ -44,7 +44,7 @@ class HelpPage extends StatelessWidget {
 
   Widget buildUsage() {
     return Text(
-      'v1.2\n\n' +
+      'v1.3\n\n' +
       '使用方法：\n输入正确的学号和密码即可登录，注意不要输错5次，会导致帐号被锁一天。\n\n' +
           '登录后会自动查询当前还差多少作业没交，软件也会在查询后设定定时通知，' +
           '在作业截至日期前三天和前一天发送通知提醒交作业。\n\n' +
