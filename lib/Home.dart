@@ -24,9 +24,7 @@ class _HomePageState extends State<HomePage> {
         _courses = courses;
       });
       // FIXED: 异步同时请求会无法获得正确的课程信息，需要同步执行
-      List<String> courseIds = courses.keys.toList();
-      for (var i = 0; i < courseIds.length; i++) {
-        String courseId = courseIds[i];
+      for (var courseId in courses.keys) {
         String courseName = courses[courseId];
 
         List<List<String>> course = await School.instance.getCourse(courseId);
