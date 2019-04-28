@@ -20,7 +20,9 @@ class HelpPage extends StatelessWidget {
               buildTitle(),
               buildUsage(),
               buildAuthor(),
-              buildGithub(context),
+              Builder(builder: (BuildContext context) {
+                return buildGithub(context);
+              }),
             ],
           ),
         ),
