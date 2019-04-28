@@ -70,7 +70,9 @@ class School {
     // 获取字节流并转换成gbk编码的文本
     Response<List<int>> response = await _dio.get<List<int>>(
       url,
-      options: Options(responseType: ResponseType.bytes),
+      options: Options(
+          responseType: ResponseType.bytes
+      ),
     );
     return gbk.decode(response.data);
   }
@@ -89,9 +91,13 @@ class School {
 
   // 登录
   // 返回是否登录成功
-  Future<bool> login() async {
+  // 200为成功
+  // 400为帐号或密码错误
+  // 401为帐号为token错误
+  // 403为帐号被锁，无权进入
+  Future<int> login() async {
     if (_username == null || _password == null) {
-      return false;
+      return 400;
     }
 
     // 获取csrf token
@@ -102,6 +108,8 @@ class School {
     if (match != null) {
       token = match.group(1);
       print('token: ' + token);
+    } else {
+      return 401;
     }
 
     // 登录表单数据
@@ -113,14 +121,36 @@ class School {
     });
 
     // 提交登录表单
-    Response response = await _dio.post('loginCheck.do', data: formData);
+    Response<List<int>> response = await _dio.post<List<int>>(
+      'loginCheck.do',
+      data: formData,
+      options: Options(
+        responseType: ResponseType.bytes
+      ),
+    );
 
     // 重定向意味着成功登录了
     if (response.statusCode == 302) {
       // 登录成功
-      return true;
+      return 200;
     } else {
-      return false;
+      // 转码
+      String content = gbk.decode(response.data);
+      print(content);
+
+      // 检查是否是帐号密码错误
+      Match match = matchOne(r'用户名或密码错误！', content);
+      if(match != null) {
+        return 400;
+      }
+
+      // 检查是否被锁帐号了
+      match = matchOne(r'您已登录失败5次，账号被锁定，请您明天再试！', content);
+      if(match != null) {
+        return 403;
+      }
+
+      return 400;
     }
   }
 

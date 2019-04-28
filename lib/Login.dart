@@ -28,26 +28,7 @@ class _LoginPageState extends State<LoginPage> {
 
     // 存在的话就直接登录
     if (!(this._username == null || this._password == null)) {
-      this._logining = true;
-      School.instance.login().then((bool loginStatus) {
-        setState(() {
-          this._logining = false;
-        });
-        if (loginStatus) {
-          // Scaffold.of(context).showSnackBar(SnackBar(content: new Text('登录成功')));
-          // 进入主页面
-          Navigator.of(context).pushNamed('/home');
-        } else {
-          Scaffold.of(this.context)
-              .showSnackBar(SnackBar(content: new Text('自动登录失败，请检查学号和密码')));
-        }
-      }).catchError((error) {
-        setState(() {
-          this._logining = false;
-        });
-        Scaffold.of(this.context)
-            .showSnackBar(SnackBar(content: new Text('发生了错误，请重试')));
-      });
+      login();
     }
   }
 
@@ -79,39 +60,54 @@ class _LoginPageState extends State<LoginPage> {
 
   // 登录
   void login() {
+    setState(() {
+      this._logining = true;
+    });
+
+    // 获取登录状态
+    School.instance.login().then((int loginStatus) {
+      setState(() {
+        this._logining = false;
+      });
+      if (loginStatus == 200) {
+        // Scaffold.of(context).showSnackBar(SnackBar(content: new Text('登录成功')));
+        // 进入主页面
+        Navigator.of(context).pushNamed('/home');
+      } else {
+        if (loginStatus == 400) {
+          Scaffold.of(context)
+              .showSnackBar(SnackBar(content: new Text('登录失败，请检查学号和密码')));
+        } else if (loginStatus == 401) {
+          Scaffold.of(context)
+              .showSnackBar(SnackBar(content: new Text('登录失败，无法获取token')));
+        } else if (loginStatus == 403) {
+          Scaffold.of(context).showSnackBar(
+              SnackBar(content: new Text('您已登录失败5次，账号被锁定，请您明天再试！')));
+        }
+      }
+    }).catchError((e) {
+      setState(() {
+        this._logining = false;
+      });
+      Scaffold.of(context)
+          .showSnackBar(SnackBar(content: new Text('发生了错误，请检查网络并重试')));
+    });
+  }
+
+  // 提交表单
+  void submit() {
     if (_formKey.currentState.validate()) {
-      ///只有输入的内容符合要求通过才会到达此处
       _formKey.currentState.save();
-      //TODO 执行登录方法
 
       if (this._logining) {
         return;
       }
 
-      setState(() {
-        this._logining = true;
-      });
+      // 保存账号和密码
       School.instance.setUsername(this._username);
       School.instance.setPassword(this._password);
-      School.instance.login().then((bool loginStatus) {
-        setState(() {
-          this._logining = false;
-        });
-        if (loginStatus) {
-          // Scaffold.of(context).showSnackBar(SnackBar(content: new Text('登录成功')));
-          // 进入主页面
-          Navigator.of(context).pushNamed('/home');
-        } else {
-          Scaffold.of(context)
-              .showSnackBar(SnackBar(content: new Text('登录失败，请检查学号和密码')));
-        }
-      }).catchError((error) {
-        setState(() {
-          this._logining = false;
-        });
-        Scaffold.of(context)
-            .showSnackBar(SnackBar(content: new Text('发生了错误，请重试')));
-      });
+
+      login();
     }
   }
 
@@ -130,7 +126,7 @@ class _LoginPageState extends State<LoginPage> {
                   style: Theme.of(context).primaryTextTheme.headline,
                 ),
           color: Colors.black,
-          onPressed: () => login(),
+          onPressed: () => submit(),
           shape: StadiumBorder(side: BorderSide()),
         ),
       ),
@@ -163,7 +159,7 @@ class _LoginPageState extends State<LoginPage> {
                       : Theme.of(context).iconTheme.color;
                 });
               })),
-      onEditingComplete: () => login(),
+      onEditingComplete: () => submit(),
     );
   }
 
