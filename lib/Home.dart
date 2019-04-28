@@ -13,7 +13,7 @@ class _HomePageState extends State<HomePage> {
   Map<String, String> _courses;
   // 课程名为键，待交作业列表为值
   // 待交作业列表由作业的信息map组成
-  Map<String, List<Map<String, String>>> _homeworks = Map();
+  Map<String, List<Map<String, String>>> _allHomeworks = Map();
 
   @override
   void initState() {
@@ -51,11 +51,11 @@ class _HomePageState extends State<HomePage> {
             homework['title'] = c[0];
             homework['content'] = content;
 
-            if (_homeworks[courseName] == null) {
-              _homeworks[courseName] = List();
+            if (_allHomeworks[courseName] == null) {
+              _allHomeworks[courseName] = List();
             }
             setState(() {
-              _homeworks[courseName].add(homework);
+              _allHomeworks[courseName].add(homework);
             });
             // 在交作业前一天给个提醒
             // 当前时间已经超过的话就不重复提醒了
@@ -113,20 +113,30 @@ class _HomePageState extends State<HomePage> {
           );
   }
 
-  void showHomeworkDialog(BuildContext context, String content) {
+  void showHomeworkDialog(BuildContext context,String title, String content) {
     showDialog(
       context: context,
       barrierDismissible: true,
       builder: (BuildContext context) {
         return Dialog(
-          child: ListView(children: <Widget>[
-            Html(
-              data: content,
-              useRichText: true,
-              padding: EdgeInsets.all(8.0),
-              defaultTextStyle: TextStyle(fontSize: 20.0),
-            ),
-          ]),
+          child: Padding(padding: EdgeInsets.all(20.0),
+            child: ListView(children: <Widget>[
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 30.0,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Html(
+                data: content,
+                useRichText: true,
+                padding: EdgeInsets.all(8.0),
+                defaultTextStyle: TextStyle(fontSize: 20.0),
+              ),
+            ]),
+          ),
         );
       },
     );
@@ -135,7 +145,8 @@ class _HomePageState extends State<HomePage> {
   // 待交作业列表
   List<Widget> buildHomeworkList(BuildContext context) {
     List<Widget> list = List();
-    _homeworks.forEach((courseName, homework) {
+    // _allHomeworks是多个科目的列表
+    _allHomeworks.forEach((courseName, homeworks) {
       print(courseName);
       list.add(Text(courseName,
           textAlign: TextAlign.center,
@@ -144,15 +155,17 @@ class _HomePageState extends State<HomePage> {
             fontWeight: FontWeight.bold,
           )));
 
-      homework.forEach((item) {
-        DateTime date = DateTime.parse(item['date']);
+      // homeworks是单个科目的作业列表
+      // homework是单个作业的信息字典
+      homeworks.forEach((homework) {
+        DateTime date = DateTime.parse(homework['date']);
 
         list.add(Card(
           elevation: 5.0,
           margin: EdgeInsets.all(20.0),
           child: ListTile(
             title: Text(
-              item['title'],
+              homework['title'],
               textAlign: TextAlign.center,
             ),
             subtitle: Text(
@@ -160,7 +173,7 @@ class _HomePageState extends State<HomePage> {
               textAlign: TextAlign.center,
             ),
             onTap: () {
-              showHomeworkDialog(context, item['content']);
+              showHomeworkDialog(context, homework['title'] , homework['content']);
             },
           ),
         ));
